@@ -3,6 +3,7 @@ Before running the code, compile by typing the following command in the terminal
 ```sh
 cd ~/robotic00_ws
 catkin_make
+```sh
 
 Then execute the following commands in sequence：
 
