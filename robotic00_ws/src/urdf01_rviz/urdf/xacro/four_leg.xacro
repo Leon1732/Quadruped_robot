@@ -1,0 +1,222 @@
+<!--
+    使用 xacro 优化 URDF 版的小车底盘实现：
+
+    实现思路:
+    1.将一些常量、变量封装为 xacro:property
+      比如:PI 值、小车底盘半径、离地间距、车轮半径、宽度 ....
+    2.使用 宏 封装驱动轮以及支撑轮实现，调用相关宏生成驱动轮与支撑轮
+
+-->
+<!-- 根标签，必须声明 xmlns:xacro -->
+<robot name="four_leg_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <!-- 封装变量、常量 -->
+    <xacro:property name="PI" value="3.141"/>
+    <!-- 宏:黑色设置 -->
+    <material name="black">
+        <color rgba="0.0 0.0 0.0 1.0" />
+    </material>
+    <!-- 底盘属性 -->
+    <xacro:property name="base_length" value="0.4" /> <!-- base_footprint 半径  -->
+    <xacro:property name="base_width" value="0.2" /> <!-- base_link 半径 -->
+    <xacro:property name="base_height" value="0.1" /> <!-- base_link 长 -->
+    <xacro:property name="earth_space" value="0.3" /> <!-- 离地间距 -->
+
+    <!-- base link -->
+    <link name="base_link">
+      <visual>
+        <geometry>
+          <box size="${base_length} ${base_width} ${base_height}" />
+        </geometry>
+        <origin xyz="0 0 ${earth_space}" rpy="0 0 0" />
+        <material name="blue">
+          <color rgba="0.0 0.0 1.0 1.0" />
+        </material>
+      </visual>
+    </link>
+
+
+    <!-- leg -->
+    <!-- 腿属性 -->
+    <xacro:property name="length_leg1" value="0.04" />
+    <xacro:property name="length_leg2" value="0.13" />
+    <xacro:property name="length_leg3" value="0.12" />
+    <xacro:property name="width_leg" value="0.01" />
+
+    <!-- 左腿宏实现 -->
+    <xacro:macro name="left_leg" params="name flag">
+    <!-- 左腿1-->
+      <link name="${name}_left_leg1">
+        <visual>
+          <geometry>
+            <cylinder length="${length_leg1}" radius="${width_leg}" />
+          </geometry>
+          <origin xyz="0.0 ${length_leg1 / 2} 0.0" rpy="${PI / 2} 0.0 0.0" />
+          <material name="black" />
+        </visual>
+        <visual>
+          <geometry>
+            <sphere radius="${width_leg + 0.01}" />
+          </geometry>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+        </visual>
+      </link>
+
+      <joint name="${name}_left_leg1_joint" type="revolute">
+        <parent link="base_link" />
+        <child link="${name}_left_leg1" />
+        <origin xyz="${flag * (base_length / 2 - 0.05)} ${base_width / 2} ${earth_space - (base_height / 2) + width_leg + 0.01}" rpy="0 0 0" />
+        <axis xyz="1 0 0" />
+        <limit lower="${-1 * (PI / 6)}" upper="${PI / 6}" effort="15" velocity="3"/>
+      </joint>
+
+      <!-- 左腿2-->
+      <link name="${name}_left_leg2">
+        <visual>
+          <geometry>
+            <cylinder length="${length_leg2}" radius="${width_leg}" />
+          </geometry>
+          <origin xyz="0.0 0.0 ${-1 * length_leg2 / 2}" rpy="0.0 0.0 0.0" />
+          <material name="black" />
+        </visual>
+        <visual>
+          <geometry>
+            <sphere radius="${width_leg + 0.01}" />
+          </geometry>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+        </visual>
+      </link>
+
+      <joint name="${name}_left_leg2_joint" type="revolute">
+        <parent link="${name}_left_leg1" />
+        <child link="${name}_left_leg2" />
+        <origin xyz="0.0 ${length_leg1} 0.0" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+        <limit lower="0.0" upper="${PI / 2}" effort="15" velocity="3"/>
+      </joint>
+
+      <!-- 左腿3 -->
+      <link name="${name}_left_leg3">
+        <visual>
+          <geometry>
+            <cylinder length="${length_leg3}" radius="${width_leg}" />
+          </geometry>
+          <origin xyz="0.0 0.0 ${-1 * length_leg3 / 2}" rpy="0.0 0.0 0.0" />
+          <material name="black" />
+        </visual>
+        <visual>
+          <geometry>
+            <sphere radius="${width_leg + 0.01}" />
+          </geometry>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+        </visual>
+        <visual>
+          <geometry>
+            <sphere radius="${width_leg + 0.01}" />
+          </geometry>
+          <origin xyz="0 0 ${-1 * length_leg3}" rpy="0 0 0" />
+        </visual>
+      </link>
+
+      <joint name="${name}_left_leg3_joint" type="revolute">
+        <parent link="${name}_left_leg2" />
+        <child link="${name}_left_leg3" />
+        <origin xyz="0.0 0.0 ${-1 * length_leg2}" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+        <limit lower="${-1 * PI * 2 / 3}" upper="0.0" effort="15" velocity="3"/>
+      </joint>
+
+    </xacro:macro>
+
+    <xacro:left_leg name="front" flag="1" />
+    <xacro:left_leg name="rear" flag="-1" />
+    
+    <!-- 右腿宏实现 -->
+    <xacro:macro name="right_leg" params="name flag">
+    <!-- 右腿1-->
+      <link name="${name}_right_leg1">
+        <visual>
+          <geometry>
+            <cylinder length="${length_leg1}" radius="${width_leg}" />
+          </geometry>
+          <origin xyz="0.0 ${-1 * length_leg1 / 2} 0.0" rpy="${PI / 2} 0.0 0.0" />
+          <material name="black" />
+        </visual>
+        <visual>
+          <geometry>
+            <sphere radius="${width_leg + 0.01}" />
+          </geometry>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+        </visual>
+      </link>
+
+      <joint name="${name}_right_leg1_joint" type="revolute">
+        <parent link="base_link" />
+        <child link="${name}_right_leg1" />
+        <origin xyz="${flag * (base_length / 2 - 0.05)} ${-1 * base_width / 2} ${earth_space - (base_height / 2) + width_leg + 0.01}" rpy="0 0 0" />
+        <axis xyz="1 0 0" />
+        <limit lower="${-1 * (PI / 6)}" upper="${PI / 6}" effort="15" velocity="3"/>
+      </joint>
+
+      <!-- 左腿2-->
+      <link name="${name}_right_leg2">
+        <visual>
+          <geometry>
+            <cylinder length="${length_leg2}" radius="${width_leg}" />
+          </geometry>
+          <origin xyz="0.0 0.0 ${-1 * length_leg2 / 2}" rpy="0.0 0.0 0.0" />
+          <material name="black" />
+        </visual>
+        <visual>
+          <geometry>
+            <sphere radius="${width_leg + 0.01}" />
+          </geometry>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+        </visual>
+      </link>
+
+      <joint name="${name}_right_leg2_joint" type="revolute">
+        <parent link="${name}_right_leg1" />
+        <child link="${name}_right_leg2" />
+        <origin xyz="0.0 ${-1 * length_leg1} 0.0" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+        <limit lower="0.0" upper="${PI / 2}" effort="15" velocity="3"/>
+      </joint>
+
+      <!-- 左腿3 -->
+      <link name="${name}_right_leg3">
+        <visual>
+          <geometry>
+            <cylinder length="${length_leg3}" radius="${width_leg}" />
+          </geometry>
+          <origin xyz="0.0 0.0 ${-1 * length_leg3 / 2}" rpy="0.0 0.0 0.0" />
+          <material name="black" />
+        </visual>
+        <visual>
+          <geometry>
+            <sphere radius="${width_leg + 0.01}" />
+          </geometry>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+        </visual>
+        <visual>
+          <geometry>
+            <sphere radius="${width_leg + 0.01}" />
+          </geometry>
+          <origin xyz="0 0 ${-1 * length_leg3}" rpy="0 0 0" />
+        </visual>
+      </link>
+
+      <joint name="${name}_right_leg3_joint" type="revolute">
+        <parent link="${name}_right_leg2" />
+        <child link="${name}_right_leg3" />
+        <origin xyz="0.0 0.0 ${-1 * length_leg2}" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+        <limit lower="${-1 * PI * 2 / 3}" upper="0.0" effort="15" velocity="3"/>
+      </joint>
+
+    </xacro:macro>
+
+
+    <xacro:right_leg name="front" flag="1" />
+    <xacro:right_leg name="rear" flag="-1" />
+
+</robot>
