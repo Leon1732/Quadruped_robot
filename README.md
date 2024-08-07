@@ -1,3 +1,5 @@
+This project models a quadruped robot in ROS and controls it to walk.
+
 Before running the code, compile by typing the following command in the terminal：
 
 ```terminal
