@@ -1,6 +1,6 @@
 This project models a quadruped robot in ROS and controls it to walk.
 
-<img src="https://https://github.com/Leon1732/Quadruped_robot/blob/main/robotwalk.gif" width="640" alt="EKF pic">
+[robot walking](https://https://github.com/Leon1732/Quadruped_robot/blob/main/robotwalk.gif)
 
 Before running the code, compile by typing the following command in the terminal：
 
